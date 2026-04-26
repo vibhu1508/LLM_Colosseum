@@ -84,8 +84,6 @@ python -m venv .venv
 pip install -r requirements.txt
 
 # Setup Environment variables
-copy .env.example .env
-
 # Run the API
 uvicorn app.main:app --reload --port 8000
 ```
@@ -100,7 +98,7 @@ cd frontend
 npm install
 
 # Start development server
-npm start
+ng serve
 ```
 
 <br/>
