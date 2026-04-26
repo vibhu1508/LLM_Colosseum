@@ -1,0 +1,222 @@
+<div class="page">
+  <header class="topbar">
+    <div>
+      <h1>Healthcare Prompt Lab</h1>
+      <p>{{ domain }}</p>
+    </div>
+    <div class="status">{{ statusText }}</div>
+  </header>
+
+  <section class="panel composer" *ngIf="viewMode === 'composer'">
+    <h2>Prompt Composer</h2>
+    <form [formGroup]="promptForm" (ngSubmit)="runComparison()">
+      <div class="grid-two">
+        <label>
+          Prompt Type
+          <select formControlName="promptType">
+            <option *ngFor="let pt of promptTypes" [value]="pt">{{ pt }}</option>
+          </select>
+        </label>
+
+        <label>
+          Output Mode
+          <select formControlName="outputMode">
+            <option value="text">Natural Language</option>
+            <option value="json">Structured JSON</option>
+          </select>
+        </label>
+      </div>
+
+      <label *ngIf="isRoleBasedSelected()">
+        Temporary Role (Optional)
+        <input type="text" formControlName="roleOverride" placeholder="e.g. pulmonologist, dietitian, nurse educator" />
+      </label>
+
+      <div class="example-panel" *ngIf="isOneShotSelected()">
+        <h3>One-shot Example (Student Defined)</h3>
+        <label>
+          Example 1 Input
+          <textarea rows="2" formControlName="example1Input" placeholder="Enter example input"></textarea>
+        </label>
+        <label>
+          Example 1 Output
+          <textarea rows="3" formControlName="example1Output" placeholder="Enter expected example output"></textarea>
+        </label>
+      </div>
+
+      <div class="example-panel" *ngIf="isFewShotSelected()">
+        <h3>Few-shot Examples (Student Defined)</h3>
+        <label>
+          Example 1 Input
+          <textarea rows="2" formControlName="example1Input" placeholder="Example 1 input"></textarea>
+        </label>
+        <label>
+          Example 1 Output
+          <textarea rows="3" formControlName="example1Output" placeholder="Example 1 output"></textarea>
+        </label>
+
+        <label>
+          Example 2 Input
+          <textarea rows="2" formControlName="example2Input" placeholder="Example 2 input"></textarea>
+        </label>
+        <label>
+          Example 2 Output
+          <textarea rows="3" formControlName="example2Output" placeholder="Example 2 output"></textarea>
+        </label>
+
+        <label>
+          Example 3 Input
+          <textarea rows="2" formControlName="example3Input" placeholder="Example 3 input"></textarea>
+        </label>
+        <label>
+          Example 3 Output
+          <textarea rows="3" formControlName="example3Output" placeholder="Example 3 output"></textarea>
+        </label>
+      </div>
+
+      <label>
+        Prompt Instructions (Optional)
+        <textarea rows="4" formControlName="promptText" placeholder="Optional: add extra instructions for this run"></textarea>
+      </label>
+
+      <label>
+        Test Input
+        <textarea rows="4" formControlName="inputText" placeholder="Enter healthcare guideline question/text"></textarea>
+      </label>
+
+      <div class="preview-panel">
+        <h3>Final Prompt Preview</h3>
+        <pre>{{ getPromptPreview() }}</pre>
+      </div>
+
+      <div class="models-row">
+        <h3>Model Selection (dynamic columns)</h3>
+        <div class="model-pills">
+          <label *ngFor="let model of models" class="pill">
+            <input
+              type="checkbox"
+              [checked]="selectedModelIds.has(model.id)"
+              (change)="toggleModel(model.id, $any($event.target).checked)"
+            />
+            <span class="symbol">{{ model.symbol }}</span>
+            <span>{{ model.name }}</span>
+          </label>
+        </div>
+      </div>
+
+      <button type="submit" [disabled]="loading">Run Comparison</button>
+    </form>
+  </section>
+
+  <section class="panel outputs" *ngIf="viewMode === 'results'">
+    <div class="results-head">
+      <div>
+        <h2>Live Model Comparison</h2>
+        <p *ngIf="liveRunId">Run #{{ liveRunId }} in progress</p>
+        <p>Run outputs are auto-saved. Use one button to save all evaluations.</p>
+      </div>
+      <div class="results-actions">
+        <button type="button" [disabled]="savingEvaluations || loading" (click)="saveAllEvaluations()">
+          {{ savingEvaluations ? 'Saving...' : 'Save Evaluation' }}
+        </button>
+        <button type="button" class="secondary" (click)="openComposerView()">Back to Composer</button>
+      </div>
+    </div>
+
+    <div class="column-grid" [style.gridTemplateColumns]="'repeat(' + latestOutputs.length + ', minmax(280px, 1fr))'">
+      <article class="output-card" *ngFor="let output of latestOutputs">
+        <header>
+          <span class="symbol-badge">{{ output.model_symbol }}</span>
+          <div>
+            <h3>{{ output.model_name }}</h3>
+            <p>
+              {{ output.provider_name }}
+              <span *ngIf="output.latency_ms"> | {{ output.latency_ms }} ms</span>
+            </p>
+          </div>
+        </header>
+
+        <pre *ngIf="promptForm.controls.outputMode.value === 'json'">{{ asJson(output.raw_response) }}</pre>
+        <div *ngIf="promptForm.controls.outputMode.value === 'text'" class="output-rich" [innerHTML]="renderOutputHtml(output.raw_response)"></div>
+
+        <div class="score-box">
+          <h4>Manual Score</h4>
+          <div class="score-grid">
+            <label>
+              Accuracy
+              <input
+                type="number"
+                min="1"
+                max="5"
+                [value]="getDraft(output.model_name).accuracy"
+                (input)="updateDraftScore(output.model_name, 'accuracy', $any($event.target).value)"
+              />
+            </label>
+            <label>
+              Clarity
+              <input
+                type="number"
+                min="1"
+                max="5"
+                [value]="getDraft(output.model_name).clarity"
+                (input)="updateDraftScore(output.model_name, 'clarity', $any($event.target).value)"
+              />
+            </label>
+            <label>
+              Relevance
+              <input
+                type="number"
+                min="1"
+                max="5"
+                [value]="getDraft(output.model_name).relevance"
+                (input)="updateDraftScore(output.model_name, 'relevance', $any($event.target).value)"
+              />
+            </label>
+          </div>
+
+          <div class="tags">
+            <label *ngFor="let tag of failureTags">
+              <input
+                type="checkbox"
+                [checked]="getDraft(output.model_name).failure_tags.includes(tag)"
+                (change)="toggleDraftTag(output.model_name, tag, $any($event.target).checked)"
+              />
+              {{ tag }}
+            </label>
+          </div>
+
+          <textarea
+            rows="2"
+            placeholder="Failure analysis / notes"
+            [value]="getDraft(output.model_name).notes"
+            (input)="updateDraftNotes(output.model_name, $any($event.target).value)"
+          ></textarea>
+        </div>
+      </article>
+    </div>
+  </section>
+
+  <section class="panel log-panel">
+    <h2>Global Saved Comparisons</h2>
+    <p>Only runs saved with the Save Evaluation button are shown here for later comparison.</p>
+    <div class="log-list">
+      <article *ngFor="let row of globalRuns" class="log-item">
+        <div class="log-head">
+          <span>{{ row.model_symbol }} {{ row.model_name }} ({{ row.provider_name }})</span>
+          <span>Run #{{ row.run_id }} | {{ row.created_at | date:'short' }}</span>
+        </div>
+        <p><strong>Prompt type:</strong> {{ row.prompt_type }} | <strong>Mode:</strong> {{ row.output_mode }}</p>
+        <p>
+          <strong>Scores:</strong>
+          A {{ row.accuracy ?? '-' }} |
+          C {{ row.clarity ?? '-' }} |
+          R {{ row.relevance ?? '-' }}
+        </p>
+        <p *ngIf="row.failure_tags?.length"><strong>Failure tags:</strong> {{ row.failure_tags?.join(', ') }}</p>
+        <p *ngIf="row.notes"><strong>Notes:</strong> {{ row.notes }}</p>
+        <p><strong>Input:</strong> {{ row.input_text }}</p>
+        <div class="output-rich"><strong>Output:</strong> <span [innerHTML]="renderOutputHtml(row.raw_response)"></span></div>
+      </article>
+    </div>
+  </section>
+</div>
