@@ -2,7 +2,9 @@
 
 [![Typing SVG](https://readme-typing-svg.demolab.com?font=Fira+Code&weight=600&size=35&pause=1000&color=0EA5E9&center=true&vCenter=true&width=800&height=80&lines=Prompt+Engineering+Healthcare+Lab;Local+LLM+Testing+Playground;Compare+Multiple+Models+Instantly)](https://git.io/typing-svg)
 
-**A local classroom portal for Prompt Engineering activity execution in the Healthcare Information Assistant domain (non-diagnostic).**
+**This is a platform for students to learn different types of prompts and techniques by comparing them side-by-side using different LLM outputs.**
+
+A local classroom portal for Prompt Engineering in the Healthcare Information Assistant domain (non-diagnostic).
 
 ![FastAPI](https://img.shields.io/badge/FastAPI-005571?style=for-the-badge&logo=fastapi)
 ![Angular](https://img.shields.io/badge/Angular-DD0031?style=for-the-badge&logo=angular&logoColor=white)
@@ -17,12 +19,30 @@
 
 - 🔄 **Dynamic multi-model comparison:** Compare prompts across 1 to N columns simultaneously.
 - 🦙 **Ollama local model fan-out:** Send a single prompt to multiple locally hosted models.
-- 📝 **Advanced Prompt Configuration:** Dedicated fields for required assignment elements:
-  - `Role`, `Constraints`, `Tone`, `Safety instructions`, `Output format`
+- 📝 **Advanced Prompt Configuration:** Dedicated fields for learning specific prompt engineering elements:
+  - **`Role`**: Assigns a persona (e.g., "Act as a triage nurse") to guide the AI's perspective and expertise.
+  - **`Constraints`**: Sets strict rules or limitations on what the AI can or cannot say.
+  - **`Tone`**: Defines the emotional quality or professional style of the response (e.g., empathetic, clinical).
+  - **`Safety instructions`**: Ensures the AI avoids providing harmful, biased, or actual diagnostic medical advice.
+  - **`Output format`**: Specifies the exact structure of the response (e.g., bulleted list, JSON, SOAP note).
 - 🎯 **Flexible Output Modes:** Switch between Natural language text and Structured JSON.
 - 📊 **Global Shared Run Log:** Real-time visibility into all user runs.
 - ⚖️ **Manual Scoring System:** Evaluate outputs on:
   - *Accuracy*, *Clarity*, *Relevance*, and specific *Failure tags*.
+
+<br/>
+<img src="https://raw.githubusercontent.com/andreasbm/readme/master/assets/lines/rainbow.png" width="100%" />
+
+## 🧠 Supported Prompting Techniques
+
+Students can use this platform to experiment with and evaluate various prompt engineering methodologies, including:
+
+1. **Zero-Shot Prompting:** Asking the model to perform a task directly without providing any prior examples or context.
+2. **Few-Shot Prompting:** Providing a few examples of the desired input and output format before asking the model to perform the task.
+3. **Chain-of-Thought (CoT) Prompting:** Instructing the model to break down its reasoning into explicit, step-by-step logical chunks before providing a final answer.
+4. **Role Prompting (Persona Prompting):** Assigning a specific role or persona (e.g., "Act as a senior doctor") to guide the model's tone, style, and domain expertise.
+5. **System/Context Prompting:** Providing overarching background information and strict rules to set boundaries for how the model should behave throughout the interaction.
+6. **Instruction Prompting:** Giving clear, highly structured, and explicit directives with specific constraints (like output format, tone, or length) for the model to follow.
 
 <br/>
 <img src="https://raw.githubusercontent.com/andreasbm/readme/master/assets/lines/rainbow.png" width="100%" />
